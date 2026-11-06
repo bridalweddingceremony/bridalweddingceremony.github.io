@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin – Wedding Gallery</title>
+<style>
+:root{--bg:#faf6f1;--card:#fff;--ink:#2b2320;--mute:#7a6d66;--line:#e6dcd3;--accent:#8c3b4a;--ok:#2f7d4f;--err:#b3261e}
+@media (prefers-color-scheme:dark){:root{--bg:#1d1917;--card:#2a2421;--ink:#f3ebe5;--mute:#b4a69d;--line:#443b36;--accent:#e08a9a;--ok:#6fcf97;--err:#ff8a80}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Georgia,"Noto Serif Bengali",serif;line-height:1.6}
+main{max-width:640px;margin:0 auto;padding:24px 16px 64px}
+h1{font-size:1.7rem;margin:.2em 0 .6em}
+h2{font-size:1.15rem;margin:0 0 .6em}
+section{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:18px}
+label{display:block;font-size:.9rem;color:var(--mute);margin:.7em 0 .2em}
+input,select,button{font:inherit;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+button{background:var(--accent);color:#fff;border:0;cursor:pointer;margin-top:12px;font-weight:600}
+button.ghost{background:transparent;color:var(--mute);border:1px solid var(--line)}
+button:disabled{opacity:.5;cursor:wait}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.bar{height:10px;background:var(--line);border-radius:6px;overflow:hidden;margin-top:12px}
+.bar i{display:block;height:100%;width:0;background:var(--ok);transition:width .2s}
+#log{font-size:.85rem;color:var(--mute);max-height:180px;overflow:auto;margin-top:10px;white-space:pre-wrap}
+.msg{font-size:.9rem;margin-top:8px}.err{color:var(--err)}.ok{color:var(--ok)}
+.hide{display:none}
+</style>
+</head>
+<body>
+<main>
+<h1>অ্যাডমিন প্যানেল</h1>
+
+<section id="loginBox">
+  <h2>লগইন</h2>
+  <label for="email">ইমেইল</label><input id="email" type="email" autocomplete="username">
+  <label for="pass">পাসওয়ার্ড</label><input id="pass" type="password" autocomplete="current-password">
+  <button id="loginBtn">লগইন করুন</button>
+  <div id="loginMsg" class="msg err"></div>
+</section>
+
+<div id="app" class="hide">
+  <section>
+    <h2>নতুন অনুষ্ঠান</h2>
+    <label for="evName">অনুষ্ঠানের নাম</label><input id="evName" placeholder="যেমন: রাহিম ও সুমির বিয়ে">
+    <label for="evSlug">ছোট নাম (ইংরেজিতে, লিংকে থাকবে)</label><input id="evSlug" placeholder="rahim-sumi">
+    <button id="addEv">অনুষ্ঠান তৈরি করুন</button>
+    <div id="evMsg" class="msg"></div>
+  </section>
+
+  <section>
+    <h2>ছবি আপলোড</h2>
+    <label for="evSel">অনুষ্ঠান বেছে নিন</label><select id="evSel"></select>
+    <label for="files">ছবি বাছুন (একসাথে অনেকগুলো)</label>
+    <input id="files" type="file" accept="image/*" multiple>
+    <button id="upBtn">আপলোড শুরু করুন</button>
+    <div class="bar"><i id="bar"></i></div>
+    <div id="log"></div>
+  </section>
+
+  <section>
+    <h2>অতিথিদের লিংক</h2>
+    <div id="link" class="msg">অনুষ্ঠান বেছে নিলে লিংক এখানে আসবে।</div>
+  </section>
+
+  <button class="ghost" id="logout">লগআউট</button>
+</div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/dist/face-api.js"></script>
+<script>
+const SUPABASE_URL = "https://fudettgamzstrmoidaso.supabase.co";
+const SUPABASE_KEY = "sb_publishable_CIXDLu4BXsCocGeHCFYp8Q_s3nxH4xv";
+const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model/";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const $ = id => document.getElementById(id);
+let events = [], modelsReady = false;
+
+function log(t){ const l=$("log"); l.textContent += t+"\n"; l.scrollTop=l.scrollHeight; }
+
+async function showApp(){
+  const { data:{ session } } = await sb.auth.getSession();
+  $("loginBox").classList.toggle("hide", !!session);
+  $("app").classList.toggle("hide", !session);
+  if(session) loadEvents();
+}
+
+$("loginBtn").onclick = async () => {
+  $("loginMsg").textContent = "";
+  const { error } = await sb.auth.signInWithPassword({ email:$("email").value.trim(), password:$("pass").value });
+  if(error) $("loginMsg").textContent = "লগইন হয়নি: ইমেইল বা পাসওয়ার্ড ভুল।"; else showApp();
+};
+$("logout").onclick = async () => { await sb.auth.signOut(); showApp(); };
+
+async function loadEvents(){
+  const { data, error } = await sb.from("events").select("*").order("created_at",{ascending:false});
+  if(error){ $("evMsg").textContent = error.message; $("evMsg").className="msg err"; return; }
+  events = data;
+  $("evSel").innerHTML = events.map(e=>`<option value="${e.id}">${e.name.replace(/</g,"&lt;")}</option>`).join("");
+  showLink();
+}
+function showLink(){
+  const ev = events.find(e=>e.id===$("evSel").value);
+  if(!ev){ $("link").textContent="এখনো কোনো অনুষ্ঠান নেই।"; return; }
+  const url = location.origin + "/?event=" + encodeURIComponent(ev.slug);
+  $("link").textContent = url + "  (গেস্ট পেজ বানানোর পর এই লিংকের QR কোড হবে)";
+}
+$("evSel").onchange = showLink;
+
+$("addEv").onclick = async () => {
+  const name=$("evName").value.trim(), slug=$("evSlug").value.trim().toLowerCase();
+  const m=$("evMsg");
+  if(!name || !/^[a-z0-9-]+$/.test(slug)){ m.className="msg err"; m.textContent="নাম দিন, আর ছোট নামে শুধু ইংরেজি ছোট হাতের অক্ষর, সংখ্যা ও - ব্যবহার করুন।"; return; }
+  const { error } = await sb.from("events").insert({ name, slug });
+  if(error){ m.className="msg err"; m.textContent="তৈরি হয়নি: "+error.message; return; }
+  m.className="msg ok"; m.textContent="অনুষ্ঠান তৈরি হয়েছে।";
+  $("evName").value=""; $("evSlug").value=""; loadEvents();
+};
+
+async function loadModels(){
+  if(modelsReady) return;
+  log("মুখ চেনার মডেল লোড হচ্ছে...");
+  await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
+  await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+  await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+  modelsReady = true;
+}
+
+function loadImg(file){
+  return new Promise((res,rej)=>{ const u=URL.createObjectURL(file), i=new Image();
+    i.onload=()=>{URL.revokeObjectURL(u);res(i)}; i.onerror=rej; i.src=u; });
+}
+async function detect(file){
+  const img = await loadImg(file);
+  const s = Math.min(1, 1200/Math.max(img.width,img.height));
+  const c = document.createElement("canvas");
+  c.width = Math.round(img.width*s); c.height = Math.round(img.height*s);
+  c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+  const res = await faceapi.detectAllFaces(c, new faceapi.SsdMobilenetv1Options({minConfidence:0.5}))
+    .withFaceLandmarks().withFaceDescriptors();
+  return res.map(r=>Array.from(r.descriptor).map(v=>+v.toFixed(4)));
+}
+
+$("upBtn").onclick = async () => {
+  const evId = $("evSel").value, files = [...$("files").files];
+  if(!evId || !files.length){ log("অনুষ্ঠান ও ছবি বেছে নিন।"); return; }
+  const btn=$("upBtn"); btn.disabled=true; $("log").textContent=""; $("bar").style.width="0";
+  try{
+    await loadModels();
+    let done=0, fail=0;
+    for(const f of files){
+      try{
+        const descriptors = await detect(f);
+        const ext = (f.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"");
+        const path = `${evId}/${crypto.randomUUID()}.${ext}`;
+        const up = await sb.storage.from("photos").upload(path, f, { contentType:f.type, upsert:false });
+        if(up.error) throw up.error;
+        const ins = await sb.from("photos").insert({ event_id:evId, file_path:path, face_descriptors:descriptors });
+        if(ins.error) throw ins.error;
+        log(`✓ ${f.name} (${descriptors.length}টি মুখ)`);
+      }catch(e){ fail++; log(`✗ ${f.name}: ${e.message||e}`); }
+      done++; $("bar").style.width = (done/files.length*100)+"%";
+    }
+    log(`শেষ। সফল: ${done-fail}, ব্যর্থ: ${fail}`);
+  }catch(e){ log("সমস্যা: "+(e.message||e)); }
+  btn.disabled=false;
+};
+
+showApp();
+</script>
+</body>
+</html>
