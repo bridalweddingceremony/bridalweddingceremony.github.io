@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin – Website</title>
+<style>
+:root{color-scheme:dark;--bg:#190a0e;--card:#2b1319;--ink:#f4e9dc;--mute:#b9a493;--line:rgba(201,164,92,.3);--accent:#c9a45c;--ok:#e8cf94;--err:#ff9a8f;--gold:#e8cf94}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Georgia,"Noto Serif Bengali",serif;line-height:1.6}
+main{max-width:760px;margin:0 auto;padding:22px 16px 60px}h1{font-size:1.6rem;margin:.2em 0 .5em}h2{font-size:1.1rem;margin:0 0 .6em}
+section{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px}
+label{display:block;font-size:.9rem;color:var(--mute);margin:.6em 0 .2em}
+input,select,button{font:inherit;width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+button{background:var(--accent);color:#fff;border:0;cursor:pointer;font-weight:600;margin-top:10px}button.g{background:transparent;color:var(--mute);border:1px solid var(--line)}
+button:disabled{opacity:.5}:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.tabs{display:flex;gap:8px;margin-bottom:14px}.tabs button{margin:0}.tabs button:not(.on){background:transparent;color:var(--ink);border:1px solid var(--line)}
+.msg{font-size:.9rem;margin-top:8px;color:var(--mute)}.err{color:var(--err)}
+.g6{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-top:12px}
+.th{position:relative;aspect-ratio:1}.th img{width:100%;height:100%;object-fit:cover;border-radius:6px}
+.th b{position:absolute;top:4px;right:4px;background:var(--err);color:#fff;border-radius:50%;width:24px;height:24px;text-align:center;line-height:24px;cursor:pointer}
+.th i{position:absolute;bottom:4px;left:4px;background:rgba(0,0,0,.6);color:#fff;font-size:.7rem;font-style:normal;padding:0 6px;border-radius:4px}
+.bk{border:1px solid var(--line);border-radius:8px;padding:12px;margin-top:10px}.bk p{margin:.15em 0;font-size:.93rem}
+.bk .r{display:flex;gap:8px}.bk .r>*{margin-top:8px}.hide{display:none}a{color:var(--accent)}
+
+body{font-family:"Noto Serif Bengali","Cormorant Garamond",Georgia,serif;background:radial-gradient(ellipse at 50% 0%,#33121a 0%,#190a0e 60%) fixed;line-height:1.8}
+main::before{content:"BRIDAL WEDDING CEREMONY";display:block;text-align:center;font-family:"Cormorant Garamond",serif;letter-spacing:.35em;font-size:.82rem;color:#c9a45c;margin:6px 0 4px}
+main::after{content:"";display:block;height:0}
+h1,h2{font-family:"Cormorant Garamond","Noto Serif Bengali",serif;font-weight:500;color:#e8cf94;letter-spacing:.02em}
+h1{font-size:2.1rem;text-align:center;margin:.1em 0 .5em}h1::after{content:"✦ ✦ ✦";display:block;font-size:.7rem;letter-spacing:.6em;color:#c9a45c;margin-top:.3em}
+p.lead{text-align:center}
+section{border:1px solid var(--line);outline:1px solid rgba(201,164,92,.15);outline-offset:5px;border-radius:0;background:var(--card);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+input,select,textarea,button{border-radius:0}
+input,select,textarea{border:1px solid var(--line)}
+input:focus,select:focus,textarea:focus{border-color:#e8cf94}
+button{background:linear-gradient(135deg,#e8cf94,#b98f45);color:#2a0f14;font-family:"Cormorant Garamond","Noto Serif Bengali",serif;font-size:1.05rem;letter-spacing:.1em;text-transform:uppercase}
+button.ghost,button.g{background:transparent;color:#e8cf94;border:1px solid var(--line)}
+.tabs button:not(.on){background:transparent;color:#f4e9dc;border:1px solid var(--line)}
+.bar{border-radius:0}.bar i{background:linear-gradient(90deg,#b98f45,#e8cf94)}
+.person img{border-color:#c9a45c}.person b,.th b{background:#8c1d2b;color:#fff}
+.ph{border-radius:0;border:1px solid var(--line)}.ph img{border-radius:0}.ph.sel{outline-color:#e8cf94}
+.ph .tick{border-color:#e8cf94;color:#2a0f14}.ph.sel .tick{background:#e8cf94;color:#2a0f14}
+.th img,.bk{border-radius:0}.cam{border-radius:0;border:1px solid var(--line)}
+a{color:#e8cf94}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Noto+Serif+Bengali:wght@400;600&display=swap" rel="stylesheet"><meta name="theme-color" content="#190a0e">
+</head>
+<body><main>
+<h1>ওয়েবসাইট অ্যাডমিন</h1>
+<section id="lg"><h2>লগইন</h2>
+<label for="em">ইমেইল</label><input id="em" type="email"><label for="pw">পাসওয়ার্ড</label><input id="pw" type="password">
+<button id="lgb">লগইন</button><div id="lgm" class="msg err"></div></section>
+
+<div id="app" class="hide">
+<div class="tabs"><button id="t1" class="on">Portfolio</button><button id="t2">Booking</button></div>
+
+<div id="p1">
+<section><h2>পোর্টফোলিওতে ছবি যোগ করুন</h2>
+<label for="cat">ছবির ধরন</label><select id="cat"><option value="wedding">বিয়ে</option><option value="holud">গায়ে হলুদ</option><option value="bridal">Bridal Shoot</option><option value="baby">Baby Shoot</option><option value="other">অন্যান্য</option></select>
+<label for="fl">ছবি বাছুন (একসাথে অনেকগুলো)</label><input id="fl" type="file" accept="image/*" multiple>
+<button id="up">আপলোড করুন</button><div id="um" class="msg"></div></section>
+<section><h2>এখন সাইটে যে ছবিগুলো আছে</h2><div class="g6" id="pg"></div></section>
+</div>
+
+<div id="p2" class="hide"><section><h2>বুকিংয়ের অনুরোধ</h2><div id="bl" class="msg">লোড হচ্ছে...</div></section></div>
+
+<p><a href="admin.html">← অনুষ্ঠানের গ্যালারি আপলোড পেজ</a></p>
+<button class="g" id="lo">লগআউট</button>
+</div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+const sb=supabase.createClient("https://fudettgamzstrmoidaso.supabase.co","sb_publishable_CIXDLu4BXsCocGeHCFYp8Q_s3nxH4xv");
+const $=id=>document.getElementById(id);
+const CATS={wedding:"বিয়ে",holud:"গায়ে হলুদ",bridal:"Bridal",baby:"Baby",other:"অন্যান্য"};
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const url=p=>sb.storage.from("photos").getPublicUrl(p).data.publicUrl;
+
+async function show(){const {data:{session}}=await sb.auth.getSession();
+  $("lg").classList.toggle("hide",!!session);$("app").classList.toggle("hide",!session);
+  if(session){loadP();loadB()}}
+$("lgb").onclick=async()=>{const {error}=await sb.auth.signInWithPassword({email:$("em").value.trim(),password:$("pw").value});
+  if(error)$("lgm").textContent="ইমেইল বা পাসওয়ার্ড ভুল।";else show()};
+$("lo").onclick=async()=>{await sb.auth.signOut();show()};
+$("t1").onclick=()=>tab(1);$("t2").onclick=()=>tab(2);
+function tab(n){$("p1").classList.toggle("hide",n!==1);$("p2").classList.toggle("hide",n!==2);$("t1").classList.toggle("on",n===1);$("t2").classList.toggle("on",n===2)}
+
+async function loadP(){
+  const {data,error}=await sb.from("portfolio").select("*").order("created_at",{ascending:false});
+  if(error){$("pg").textContent=error.message;return}
+  $("pg").innerHTML="";
+  data.forEach(r=>{const d=document.createElement("div");d.className="th";
+    d.innerHTML=`<img loading="lazy" src="${url(r.file_path)}" alt=""><i>${esc(CATS[r.category]||r.category)}</i><b title="মুছুন" role="button">×</b>`;
+    d.querySelector("b").onclick=async()=>{if(!confirm("এই ছবি সাইট থেকে মুছবেন?"))return;
+      await sb.storage.from("photos").remove([r.file_path]);await sb.from("portfolio").delete().eq("id",r.id);loadP()};
+    $("pg").appendChild(d)});
+}
+function shrink(file){return new Promise((res,rej)=>{const u=URL.createObjectURL(file),i=new Image();
+  i.onload=()=>{const s=Math.min(1,2000/Math.max(i.width,i.height)),c=document.createElement("canvas");
+    c.width=Math.round(i.width*s);c.height=Math.round(i.height*s);c.getContext("2d").drawImage(i,0,0,c.width,c.height);
+    URL.revokeObjectURL(u);c.toBlob(b=>b?res(b):rej(new Error("রূপান্তর ব্যর্থ")),"image/jpeg",.85)};i.onerror=rej;i.src=u})}
+$("up").onclick=async()=>{const fs=[...$("fl").files];if(!fs.length){$("um").textContent="ছবি বাছুন।";return}
+  $("up").disabled=true;let ok=0;
+  for(const f of fs){$("um").textContent=`আপলোড হচ্ছে ${ok+1}/${fs.length}...`;
+    try{const b=await shrink(f),p=`portfolio/${crypto.randomUUID()}.jpg`;
+      const u=await sb.storage.from("photos").upload(p,b,{contentType:"image/jpeg"});if(u.error)throw u.error;
+      const r=await sb.from("portfolio").insert({file_path:p,category:$("cat").value});if(r.error)throw r.error;ok++}
+    catch(e){$("um").textContent="সমস্যা: "+(e.message||e)}}
+  $("um").textContent=`${ok}টি ছবি যোগ হয়েছে।`;$("fl").value="";$("up").disabled=false;loadP()};
+
+async function loadB(){
+  const {data,error}=await sb.from("bookings").select("*").order("created_at",{ascending:false});
+  if(error){$("bl").textContent=error.message;return}
+  if(!data.length){$("bl").textContent="এখনো কোনো বুকিং অনুরোধ আসেনি।";return}
+  $("bl").innerHTML="";
+  data.forEach(b=>{const d=document.createElement("div");d.className="bk";
+    d.innerHTML=`<p><b>${esc(b.name)}</b> · <a href="tel:${esc(b.phone)}">${esc(b.phone)}</a></p>
+    <p>${esc(b.event_type)} · ${esc(b.service||"")}</p>
+    <p>তারিখ: ${esc(b.event_date||"জানায়নি")} · ${esc(b.days||1)} দিন · ${esc(b.location||"")}</p>
+    ${b.message?`<p>“${esc(b.message)}”</p>`:""}
+    <p style="color:var(--mute)">${new Date(b.created_at).toLocaleString("bn-BD")}</p>
+    <div class="r"><select><option value="new">নতুন</option><option value="called">যোগাযোগ হয়েছে</option><option value="confirmed">নিশ্চিত</option><option value="cancelled">বাতিল</option></select><button class="g">মুছুন</button></div>`;
+    const s=d.querySelector("select");s.value=b.status||"new";
+    s.onchange=()=>sb.from("bookings").update({status:s.value}).eq("id",b.id);
+    d.querySelector("button").onclick=async()=>{if(confirm("মুছবেন?")){await sb.from("bookings").delete().eq("id",b.id);loadB()}};
+    $("bl").appendChild(d)});
+}
+show();
+</script></body></html>
